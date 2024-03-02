@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static java.util.Collections.singletonList;
 
@@ -22,6 +23,9 @@ public class MovieCatalogueResource {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private WebClient.Builder webClientBuilder;
     @RequestMapping("/{userId}")
     public List<CatalogueItem> getCatalogue(@PathVariable("userId") String userId)
     {
@@ -36,7 +40,15 @@ public class MovieCatalogueResource {
 
         return ratings.stream().map(rating -> {
                     //In the below code we are unmarshalling the string response to a movie object using ".getForObject()"
-                    Movie movie = restTemplate.getForObject("http://localhost:8082/movies/"+rating.getMovieId(), Movie.class);
+                    //Movie movie = restTemplate.getForObject("http://localhost:8082/movies/"+rating.getMovieId(), Movie.class);
+
+                    Movie movie = webClientBuilder.build()
+                            .get()
+                            .uri("http://localhost:8082/movies/"+rating.getMovieId())
+                            .retrieve()
+                            .bodyToMono(Movie.class)
+                            .block();
+
                     return new CatalogueItem(movie.getName(), "Test", rating.getRating());
                 })
                 .collect(Collectors.toList());
