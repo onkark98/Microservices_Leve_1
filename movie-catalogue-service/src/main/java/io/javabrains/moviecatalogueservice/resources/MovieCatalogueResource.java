@@ -34,12 +34,12 @@ public class MovieCatalogueResource {
 
         //Put them all together
 
-        UserRating ratings = restTemplate.getForObject("http://localhost:8083/ratingsdata/users/"+userId, UserRating.class);
+        UserRating ratings = restTemplate.getForObject("http://ratings-data-service/ratingsdata/users/"+userId, UserRating.class);
 
         return ratings.getUserRating().stream().map(rating -> {
                     //In the below code we are unmarshalling the string response to a movie object using ".getForObject()"
                     // For each movie ID get the details from the movie-info-service
-                    Movie movie = restTemplate.getForObject("http://localhost:8082/movies/"+rating.getMovieId(), Movie.class);
+                    Movie movie = restTemplate.getForObject("http://movie-info-service/movies/"+rating.getMovieId(), Movie.class);
                     //Put them all together
                     return new CatalogueItem(movie.getName(), "Test", rating.getRating());
                 })
